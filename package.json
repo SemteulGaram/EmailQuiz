@@ -1,0 +1,21 @@
+{
+  "name": "email-quiz",
+  "version": "0.0.1",
+  "description": "Email auto reply service for quiz",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "tsc --build tsconfig.json",
+    "start": "node --harmony ./build/index.js"
+  },
+  "author": "SemteulGaram",
+  "license": "UNLICENSED",
+  "devDependencies": {
+    "@types/node": "^12.7.5",
+    "@types/nodemailer": "^6.2.1",
+    "typescript": "^3.6.3"
+  },
+  "dependencies": {
+    "nodemailer": "^6.3.0"
+  }
+}
