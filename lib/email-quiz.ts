@@ -1,24 +1,23 @@
-import nodemailer from 'nodemailer';
 import { Signale } from 'signale';
 
 import logger from './logger';
 import { Config } from './config';
-import { NodemailerTransport } from './internals';
+import { EQ_Smtp } from './internals';
 
 
 export class EmailQuiz {
   config: Config;
   logger: Signale
-  transport: NodemailerTransport;
+  transport: EQ_Smtp;
 
   constructor (config: Config) {
     this.config = config;
     this.logger = logger;
-    this.transport = new NodemailerTransport(this);
+    this.transport = new EQ_Smtp(this);
   }
 
   async test () {
     // TODO: test code
-    await this.transport.test();
+    //await this.transport.sendMail('', '', '');
   }
 }

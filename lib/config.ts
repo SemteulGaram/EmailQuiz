@@ -40,19 +40,32 @@ export class Config {
   }
 }
 Config.DEFAULT_CONFIG = `{
-  "transportHost": "<SMTP_HOST_ADDRESS>",
-  "transportPort": 587,
-  "transportSecure": true,
-  "transportUser": "<USERNAME>",
-  "transportPass": "<PASSWORD>"
+  "serverPort": 7102,
+  "smtpHost": "<SMTP_HOST_ADDRESS>",
+  "smtpPort": 587,
+  "smtpSecure": true,
+  "smtpUser": "<USERNAME>",
+  "smtpPass": "<PASSWORD>",
+  "imapHost": "<IMAP_HOST_ADDRESS>",
+  "imapPort": 993,
+  "imapSecure": true,
+  "imapTimeout": 3000,
+  "imapUser": "<USER>@<IMAP_MAIL_ADDRESS>",
+  "imapPass": "<PASSWORD>"
 }`;
 
 export interface IConfig {
-  transportHost: string,
-  transportPort: number,
-  transportSecure: boolean,
-  transportUser: string,
-  transportPass: string
+  serverPort: number,
+  smtpHost: string,
+  smtpPort: number,
+  smtpSecure: boolean,
+  smtpUser: string,
+  smtpPass: string,
+  imapHost: string,
+  imapPort: number,
+  imapSecure: boolean,
+  imapUser: string,
+  imapPass: string
 }
 
 export const instance = new Config('./data/config.json');
