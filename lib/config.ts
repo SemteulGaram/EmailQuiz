@@ -35,6 +35,10 @@ export class Config {
     return this._v[key];
   }
 
+  setAll() {
+    
+  }
+
   async _createConfig() {
     return await fs.promises.writeFile(this.path, Config.DEFAULT_CONFIG, 'utf-8');
   }

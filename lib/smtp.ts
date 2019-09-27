@@ -6,7 +6,7 @@ export class EQ_Smtp {
   ctx: EmailQuiz;
   transporter: Transporter;
 
-  constructor (ctx: EmailQuiz) {
+  constructor(ctx: EmailQuiz) {
     this.ctx = ctx;
     this.transporter = nodemailer.createTransport({
       host: ctx.config.get('smtpHost'),
@@ -22,7 +22,7 @@ export class EQ_Smtp {
     });
   }
 
-  static autoConfigs(type: number): any {
+  static autoConfigs(): any {
     return [
       {
         secure: true,
@@ -35,7 +35,7 @@ export class EQ_Smtp {
     ]
   }
 
-  _getConfigFromCtx () {
+  getOptionsFromConfig(): any {
     return {
       host: this.ctx.config.get('smtpHost'),
       port: this.ctx.config.get('smtpPort'),
@@ -47,7 +47,27 @@ export class EQ_Smtp {
     }
   }
 
-  async sendMail (to: string, from: string, html: string): Promise<any> {
+  setOptionsToConfig(options: any): void {
+    if (typeof options === 'object' && options !== null) {
+      if (options.host) {
+        
+      }
+    }
+  }
+
+  _getConfigFromCtx() {
+    return {
+      host: this.ctx.config.get('smtpHost'),
+      port: this.ctx.config.get('smtpPort'),
+      secure: this.ctx.config.get('smtpSecure'),
+      auth: {
+        user: this.ctx.config.get('smtpUser'),
+        pass: this.ctx.config.get('smtpPass')
+      }
+    }
+  }
+
+  async sendMail(to: string, from: string, html: string): Promise<any> {
     return await this.transporter.sendMail({ to, from, html });
   }
 }

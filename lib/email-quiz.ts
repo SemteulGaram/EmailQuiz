@@ -2,21 +2,21 @@ import { Signale } from 'signale';
 
 import logger from './logger';
 import { Config } from './config';
-import { EQ_Smtp } from './internals';
+import { EQ_Smtp, EQ_Imap } from './internals';
 
 
 export class EmailQuiz {
   config: Config;
   logger: Signale
-  transport: EQ_Smtp;
+  smtp: EQ_Smtp;
 
-  constructor (config: Config) {
+  constructor(config: Config) {
     this.config = config;
     this.logger = logger;
-    this.transport = new EQ_Smtp(this);
+    this.smtp = new EQ_Smtp(this);
   }
 
-  async test () {
+  async test() {
     // TODO: test code
     //await this.transport.sendMail('', '', '');
   }
