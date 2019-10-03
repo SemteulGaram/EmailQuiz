@@ -7,7 +7,7 @@ import io from 'socket.io';
 
 import { instance as config } from './config';
 import logger from './logger';
-import { EmailQuiz } from './email-quiz';
+import { EmailQuiz } from './internals';
 import { SmtpOptions } from './types/SmtpOptions';
 
 export class EmailQuizServer {
@@ -50,7 +50,7 @@ export class EmailQuizServer {
         }
 
         try {
-          await this.ctx.smtp.startWithOptions(opt.toOptions());
+          await this.ctx.smtp.startWithOptions(opt.getOptions());
           socket.emit('smtpConnectResponse', { success: true });
         } catch (err) {
           this.logger.error(err);
