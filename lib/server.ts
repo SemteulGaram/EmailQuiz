@@ -8,6 +8,7 @@ import io from 'socket.io';
 import { instance as config } from './config';
 import logger from './logger';
 import { EmailQuiz } from './email-quiz';
+import { SmtpOptions } from './types/SmtpOptions';
 
 export class EmailQuizServer {
   ctx: EmailQuiz;
@@ -22,13 +23,36 @@ export class EmailQuizServer {
     this.io = io(this.server);
 
     this.io.on('connection', (socket: io.Socket) => {
-      socket.on('smtpConnect', () => {
+      socket.on('smtpConnect', async (data) => {
+        let opt: SmtpOptions;
+        try {
+          opt = new SmtpOptions(data);
+        } catch (err) {
+          if (typeof err === 'string') {
+            this.logger.smtp(`사용자가 잘못된 서버 설정 입력 [${err}]`);
+            socket.emit('smtpConnectInvalid', err);
+          } else {
+            this.logger.error(err);
+            this.logger.error(`잘못된 SMTP 설정에서 예기치 못한 오류 발생`);
+          }
+          return;
+        }
 
+        try {
+          await this.ctx.smtp.startWithOptions(opt.toOptions());
+          socket.emit('smtpConnectSuccess');
+        } catch (err) {
+          this.logger.error(err);
+          this.logger.error('========== SMTP 요청 실패');
+          socket.emit('smtpConnectFail');
+        }
       });
 
       socket.on('imapConnect', () => {
 
       });
+
+      socket.emit('CONNECT');
     });
   }
 
@@ -47,6 +71,8 @@ export class EmailQuizServer {
         return 'text/javascript';
       case 'woff2':
         return 'font/woff2';
+      case 'css':
+        return 'text/css';
       default:
         return 'text/plain';
     }
@@ -62,7 +88,7 @@ export class EmailQuizServer {
     // TODO: path safe test
     switch (paths[0]) {
       case '':
-        filePath = path.resolve('index.html');
+        filePath = path.resolve('static/index.html');
         stat = await fs.promises.stat(filePath);
   
         res.writeHead(200, {

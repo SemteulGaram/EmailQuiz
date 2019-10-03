@@ -1,6 +1,8 @@
 import fs from 'fs';
 
 import logger from './logger';
+import SMTPTransport from 'nodemailer/lib/smtp-transport';
+import { ImapSimpleOptions, ImapSimple } from 'imap-simple';
 
 export class Config {
   static DEFAULT_CONFIG: string;
@@ -35,41 +37,28 @@ export class Config {
     return this._v[key];
   }
 
-  setAll() {
-    
+  setSmtpOptions(opt: SMTPTransport.Options) {
+    this._v['smtpOptions'] = opt;
+  }
+
+  setImapOptions(opt: ImapSimpleOptions) {
+    this._v['imapOptions'] = opt;
+  }
+
+  async save() {
+    return await fs.promises.writeFile(this.path, JSON.stringify(this._v), 'utf-8');
   }
 
   async _createConfig() {
     return await fs.promises.writeFile(this.path, Config.DEFAULT_CONFIG, 'utf-8');
   }
 }
-Config.DEFAULT_CONFIG = `{
-  "serverPort": 7102,
-  "smtpHost": "<SMTP_HOST_ADDRESS>",
-  "smtpPort": 587,
-  "smtpSecure": true,
-  "smtpUser": "<USERNAME>",
-  "smtpPass": "<PASSWORD>",
-  "imapHost": "<IMAP_HOST_ADDRESS>",
-  "imapPort": 993,
-  "imapSecure": true,
-  "imapTimeout": 3000,
-  "imapUser": "<USER>@<IMAP_MAIL_ADDRESS>",
-  "imapPass": "<PASSWORD>"
-}`;
+Config.DEFAULT_CONFIG = `{"serverPort":7102,"smtpOptions":{},"imapOptions":{}}`;
 
 export interface IConfig {
   serverPort: number,
-  smtpHost: string,
-  smtpPort: number,
-  smtpSecure: boolean,
-  smtpUser: string,
-  smtpPass: string,
-  imapHost: string,
-  imapPort: number,
-  imapSecure: boolean,
-  imapUser: string,
-  imapPass: string
+  smtpOptions: SMTPTransport.Options,
+  imapOptions: ImapSimpleOptions
 }
 
 export const instance = new Config('./data/config.json');

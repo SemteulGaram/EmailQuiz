@@ -12,9 +12,7 @@
 import CommonHeader from './components/CommonHeader.vue';
 import Initializer from './components/Initializer.vue';
 import DialogFocused from './components/DialogFocused.vue';
-
-const socket = io();
-window.socket = socket;
+import store from './store.js';
 
 export default {
   components: {
@@ -39,15 +37,14 @@ export default {
       this.dialogTitle = title;
       this.dialogContent = content;
     }
-  },
-  
+  }
 }
 </script>
 
 <style>
 @font-face {
   font-family: nixgon;
-  src: url('assets/NIXGONFONTS L 2.0.otf');
+  src: url('assets/NIXGONFONTS_L_2.0.otf');
 }
 
 html, body, #app {

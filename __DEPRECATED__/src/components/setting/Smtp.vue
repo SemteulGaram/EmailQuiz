@@ -19,10 +19,7 @@
 </template>
 <script>
 import SettingServerBase from './ServerBase.vue';
-
-function tryConnectSmtp() {
-  io
-}
+import store from '../../store.js';
 
 export default {
   components: {
@@ -30,12 +27,20 @@ export default {
   }, 
   data () {
     return {
-      statusMessage: '서버응답 대기 중',
-      statusIcon: '',
+      /*statusMessage: '서버응답 대기 중',*/
+      /*statusIcon: '',*/
       optSmtpHost: '',
       optSmtpPort: '',
       optSmtpUser: '',
       optSmtpPass: ''
+    }
+  },
+  computed: {
+    statusMessage () {
+      return store.state.isConnected ? '양식을 채워주세요' : '서버연결 대기 중';
+    },
+    statusIcon () {
+      return store.state.isConnected ? 'waiting' : 'error';
     }
   }
 }

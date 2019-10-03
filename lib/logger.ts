@@ -10,7 +10,7 @@ const options: any = {
     },
     info: {
       badge: '*',
-      color: 'cyan',
+      color: 'blue',
       label: 'Info',
       logLevel: 'info'
     },
@@ -26,17 +26,17 @@ const options: any = {
       label: 'Error',
       logLevel: 'error'
     },
-    connect: {
-      badge: '■',
-      color: 'blue',
-      label: 'Connection',
+    smtp: {
+      badge: '◁',
+      color: 'green',
+      label: 'SMTP',
       logLevel: 'info'
     },
-    chat: {
-      badge: '*',
-      color: 'green',
-      label: 'chat',
-      logLevel: 'debug'
+    imap: {
+      badge: '▷',
+      color: 'cyan',
+      label: 'IMAP',
+      logLevel: 'info'
     }
   }
 };

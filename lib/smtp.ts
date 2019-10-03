@@ -1,25 +1,40 @@
 import nodemailer, { Transporter } from 'nodemailer';
 
 import { EmailQuiz } from './internals';
+import SMTPPool from 'nodemailer/lib/smtp-pool';
 
 export class EQ_Smtp {
   ctx: EmailQuiz;
-  transporter: Transporter;
+  logger: any;
+  transporter: Transporter|null;
+  opt: SMTPPool.Options|null;
 
   constructor(ctx: EmailQuiz) {
     this.ctx = ctx;
-    this.transporter = nodemailer.createTransport({
-      host: ctx.config.get('smtpHost'),
-      port: ctx.config.get('smtpPort'),
-      secure: ctx.config.get('smtpSecure'),
-      auth: {
-        user: ctx.config.get('smtpUser'),
-        pass: ctx.config.get('smtpPass')
-      },
-      tls:{
-          ciphers:'SSLv3'
-      }
-    });
+    this.logger = ctx.logger;
+    this.transporter = null;
+    this.opt = null;
+  }
+
+  async startWithOptions(opt: SMTPPool.Options) {
+    if (this.transporter) {1
+      this.transporter.close();
+      // transporter may close later
+    }
+    this.opt = opt;
+    return await this.start();
+  }
+
+  async start () {
+    if (!this.opt) throw 'ERROPTIONSNOTSET';
+    this.transporter = nodemailer.createTransport(this.opt);
+    this.logger.smtp(`서버 트랜스포트 인스턴스 생성됨 [${ this.opt.host }]`);
+  }
+
+  async stop () {
+    if (!this.transporter) throw 'ERRNOTSTARTED';
+    this.transporter.close();
+    this.transporter = null;
   }
 
   static autoConfigs(): any {
@@ -35,39 +50,8 @@ export class EQ_Smtp {
     ]
   }
 
-  getOptionsFromConfig(): any {
-    return {
-      host: this.ctx.config.get('smtpHost'),
-      port: this.ctx.config.get('smtpPort'),
-      secure: this.ctx.config.get('smtpSecure'),
-      auth: {
-        user: this.ctx.config.get('smtpUser'),
-        pass: this.ctx.config.get('smtpPass')
-      }
-    }
-  }
-
-  setOptionsToConfig(options: any): void {
-    if (typeof options === 'object' && options !== null) {
-      if (options.host) {
-        
-      }
-    }
-  }
-
-  _getConfigFromCtx() {
-    return {
-      host: this.ctx.config.get('smtpHost'),
-      port: this.ctx.config.get('smtpPort'),
-      secure: this.ctx.config.get('smtpSecure'),
-      auth: {
-        user: this.ctx.config.get('smtpUser'),
-        pass: this.ctx.config.get('smtpPass')
-      }
-    }
-  }
-
   async sendMail(to: string, from: string, html: string): Promise<any> {
+    if (!this.transporter) throw 'ERRNOTREADY';
     return await this.transporter.sendMail({ to, from, html });
   }
 }
