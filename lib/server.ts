@@ -23,6 +23,16 @@ export class EmailQuizServer {
     this.io = io(this.server);
 
     this.io.on('connection', (socket: io.Socket) => {
+
+      /* smtpConnectResponse fail reason
+       * - INVALIDOBJ
+       * - INVALIDHOST
+       * - INVALIDPORT
+       * - INVALIDUSER
+       * - INVALIDPASS
+       * - ERROPTIONPARSE
+       * - ERRCONNECTFAIL
+       */
       socket.on('smtpConnect', async (data) => {
         let opt: SmtpOptions;
         try {
@@ -30,21 +40,23 @@ export class EmailQuizServer {
         } catch (err) {
           if (typeof err === 'string') {
             this.logger.smtp(`사용자가 잘못된 서버 설정 입력 [${err}]`);
-            socket.emit('smtpConnectInvalid', err);
+            socket.emit('smtpConnectResponse', { success: false, error: err });
           } else {
             this.logger.error(err);
             this.logger.error(`잘못된 SMTP 설정에서 예기치 못한 오류 발생`);
+            socket.emit('smtpConnectResponse', { success: false, error: 'ERROPTIONPARSE' });
           }
           return;
         }
 
         try {
           await this.ctx.smtp.startWithOptions(opt.toOptions());
-          socket.emit('smtpConnectSuccess');
+          socket.emit('smtpConnectResponse', { success: true });
         } catch (err) {
           this.logger.error(err);
           this.logger.error('========== SMTP 요청 실패');
-          socket.emit('smtpConnectFail');
+          // This code can't reachable
+          socket.emit('smtpConnectResponse', { success: false, error: 'ERRCONNECTFAIL' });
         }
       });
 
