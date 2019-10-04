@@ -36,7 +36,7 @@ export class EmailQuizServer {
       socket.on('smtpConnect', async (data) => {
         let opt: SmtpOptions;
         try {
-          opt = new SmtpOptions(data);
+          opt = new SmtpOptions(this.ctx, data);
         } catch (err) {
           if (typeof err === 'string') {
             this.logger.smtp(`사용자가 잘못된 서버 설정 입력 [${err}]`);

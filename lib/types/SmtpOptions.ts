@@ -1,4 +1,5 @@
 import SMTPPool = require("nodemailer/lib/smtp-pool");
+
 import { EmailQuiz } from "../internals";
 
 export interface ISmtpAuth {
