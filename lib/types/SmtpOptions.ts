@@ -1,23 +1,21 @@
 import SMTPPool = require("nodemailer/lib/smtp-pool");
+import { EmailQuiz } from "../internals";
 
 export interface ISmtpAuth {
   user: string;
   pass: string;
 }
 
-export enum AdditionalOptionsTryStatus {
-  UNKNOWN,
-  FAIL,
-  SUCCESS
-};
-
 export class SmtpOptions {
+  ctx: EmailQuiz;
+  logger: any;
+
   host: string;
   port: number;
   auth: ISmtpAuth;
-  additionalOptionsTry: Array<AdditionalOptionsTryStatus>;
-  exhausted: boolean;
-  cursor: number;
+  
+  optionIndex: number;
+  isValid: boolean;
 
   static additionalOptions: Array<any> = [
     {
@@ -34,7 +32,10 @@ export class SmtpOptions {
     }
   ];
 
-  constructor (opt: any) {
+  constructor (ctx: EmailQuiz, opt: any) {
+    this.ctx = ctx;
+    this.logger = ctx.logger;
+
     if (typeof opt !== 'object' || opt === null) throw 'INVALIDOBJ';
 
     if (typeof opt.host !== 'string') throw 'INVALIDHOST';
@@ -50,24 +51,26 @@ export class SmtpOptions {
       pass: opt.auth.pass
     };
 
-    this.additionalOptionsTry = []
-    SmtpOptions.additionalOptions.forEach((v, i) => {
-      this.additionalOptionsTry[i] = AdditionalOptionsTryStatus.UNKNOWN;
-    })
-
-    this.exhausted = false;
-    this.cursor = 0;
+    this.optionIndex = 0;
+    this.isValid = false;
   }
 
-  setCurrentOptionStatus(status: AdditionalOptionsTryStatus) {
-    this.additionalOptionsTry[this.cursor] = status;
-    if (status = AdditionalOptionsTryStatus.FAIL) {
-      this.cursor++;
+  connectionResult(success: boolean) {
+    if (this.isValid) {
+      this.logger.warn(`SMTP> Try override additional options index`);
+      return;
+    }
+
+    if (success) {
+      this.logger.smtp(`Find valid additional options (index: ${ this.optionIndex })`);
+      this.isValid = true;
+    } else {
+      this.optionIndex++;
     }
   }
 
   getOptions(): SMTPPool.Options {
-    if (!SmtpOptions.additionalOptions[this.cursor]) throw 'ERRADDITIONALOPTIONSEXHAUSTED';
+    if (!SmtpOptions.additionalOptions[this.optionIndex]) throw 'ERRADDITIONALOPTIONSEXHAUSTED';
 
     return Object.assign({
       pool: true,
@@ -77,14 +80,13 @@ export class SmtpOptions {
         user: this.auth.user,
         pass: this.auth.pass
       }
-    }, SmtpOptions.additionalOptions[this.cursor]);
+    }, SmtpOptions.additionalOptions[this.optionIndex]);
   }
 
-  static fromConfig(config: any): SmtpOptions {
-    const obj = new SmtpOptions(config);
-    obj.additionalOptionsTry = config.additionalOptionsTry;
-    obj.exhausted = config.exhausted;
-    obj.cursor = config.cursor;
+  static fromConfig(ctx: EmailQuiz, config: any): SmtpOptions {
+    const obj = new SmtpOptions(ctx, config);
+    obj.optionIndex = config.optionIndex;
+    obj.isValid = config.isValid
     return obj;
   }
 
@@ -96,10 +98,8 @@ export class SmtpOptions {
         user: this.auth.user,
         pass: this.auth.pass
       },
-      additionalOptionsTry: this.additionalOptionsTry,
-      exhausted: this.exhausted,
-      cursor: this.cursor
+      optionIndex: this.optionIndex,
+      isValid: this.isValid
     }
   }
-  // TODO: clean additionalOptions
 }
