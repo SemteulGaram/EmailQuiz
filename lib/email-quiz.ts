@@ -21,6 +21,6 @@ export class EmailQuiz {
   async test() {
     // TODO: test code
     //await this.transport.sendMail('', '', '');
-    return await this.imap.test();
+    return await this.imap.getNextMail();
   }
 }

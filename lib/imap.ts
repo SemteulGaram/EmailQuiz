@@ -66,8 +66,19 @@ export class EQ_Imap {
   }
   
   async getNextMail (): Promise<IReceiveMail|null> {
-    if (!this._opt) return null;
-    const connection: ImapSimple = await imaps.connect(this._opt);
+    //if (!this._opt) return null;
+    const connection: ImapSimple = await imaps.connect({
+      imap: {
+        //@ts-ignore
+        user: process.env.IMAP_USER,
+        //@ts-ignore
+        password: process.env.IMAP_PASS,
+        host: process.env.IMAP_HOST,
+        //@ts-ignore
+        port: process.env.IMAP_PORT,
+        tls: true,
+        authTimeout: 10000
+      }});
     await connection.openBox('INBOX');
     const results: Array<imaps.Message> = await connection.search(['UNSEEN'], {
       bodies: ['HEADER', 'TEXT'],
@@ -75,8 +86,8 @@ export class EQ_Imap {
     });
 
     if (results.length > 0) {
-      // TODO
-      console.log(results[0]);
+      //@ts-ignore
+      console.log(results[0][0].body);
       return null;
     }
     return null;
