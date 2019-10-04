@@ -1,8 +1,9 @@
 import fs from 'fs';
 
 import logger from './logger';
-import SMTPTransport from 'nodemailer/lib/smtp-transport';
-import { ImapSimpleOptions, ImapSimple } from 'imap-simple';
+import { EmailQuiz } from './internals';
+import { SmtpOptions } from './types/SmtpOptions';
+import { ImapOptions } from './types/ImapOptions';
 
 export class Config {
   static DEFAULT_CONFIG: string;
@@ -37,11 +38,38 @@ export class Config {
     return this._v[key];
   }
 
-  setSmtpOptions(opt: SMTPTransport.Options) {
+  getSmtpOptions(ctx: EmailQuiz): SmtpOptions|null {
+    const opt = this.get('smtpOptions');
+    try {
+      return SmtpOptions.fromConfig(ctx, opt);
+    } catch (err) {
+      // isn't init value?
+      if (typeof opt !== 'object' && Object.keys(opt).length === 0) {
+        ctx.logger.warn(`Wrong smtpOptions config (code: ${err})`);
+      }
+      return null;
+    }
+  }
+
+  setSmtpOptions(opt: any) {
     this._v['smtpOptions'] = opt;
   }
 
-  setImapOptions(opt: ImapSimpleOptions) {
+  getImapOptions(ctx: EmailQuiz): ImapOptions|null {
+    const opt = this.get('imapOptions');
+    try {
+      return ImapOptions.fromConfig(ctx, opt);
+    } catch (err) {
+      // isn't init value?
+      if (typeof opt !== 'object' && Object.keys(opt).length === 0) {
+        ctx.logger.warn(`Wrong imapOptions config (code: ${err})`);
+      }
+      return null;
+    }
+  }
+
+  // TODO: more strict set Smtp, Imap Options
+  setImapOptions(opt: any) {
     this._v['imapOptions'] = opt;
   }
 
@@ -57,8 +85,8 @@ Config.DEFAULT_CONFIG = `{"serverPort":7102,"smtpOptions":{},"imapOptions":{}}`;
 
 export interface IConfig {
   serverPort: number,
-  smtpOptions: SMTPTransport.Options,
-  imapOptions: ImapSimpleOptions
+  smtpOptions: any,
+  imapOptions: any
 }
 
 export const instance = new Config('./data/config.json');
