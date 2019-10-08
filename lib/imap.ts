@@ -19,7 +19,12 @@ export class EQ_Imap {
     this._opt = null;
   }
 
+  isReady () {
+    return !!this._opt;
+  }
+
   // TODO: remove this
+  /*
   async test () {
     return imaps.connect({
       imap: {
@@ -55,42 +60,22 @@ export class EQ_Imap {
         })
       });
     }).catch((err: any) => this.logger.error(err));
-  }
+  }*/
 
   updateOptions (options: ImapSimpleOptions): void {
     this._opt = options;
   }
-
-  async hasNewMail (): Promise<boolean> {
-    return false;
-  }
   
-  async getNextMail (): Promise<IReceiveMail|null> {
-    //if (!this._opt) return null;
-    const connection: ImapSimple = await imaps.connect({
-      imap: {
-        //@ts-ignore
-        user: process.env.IMAP_USER,
-        //@ts-ignore
-        password: process.env.IMAP_PASS,
-        host: process.env.IMAP_HOST,
-        //@ts-ignore
-        port: process.env.IMAP_PORT,
-        tls: true,
-        authTimeout: 10000
-      }});
+  async getAllUnseenMail (): Promise<imaps.Message[]|null> {
+    if (!this._opt) return null;
+    const connection: ImapSimple = await imaps.connect(this._opt);
     await connection.openBox('INBOX');
     const results: Array<imaps.Message> = await connection.search(['UNSEEN'], {
       bodies: ['HEADER', 'TEXT'],
       markSeen: false
     });
 
-    if (results.length > 0) {
-      //@ts-ignore
-      console.log(results[0][0].body);
-      return null;
-    }
-    return null;
+    return results;
   }
 }
 

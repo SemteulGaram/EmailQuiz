@@ -7,6 +7,7 @@ import logger from './logger';
 import { instance as config } from './config';
 import { EmailQuiz } from './internals';
 import { EmailQuizServer } from './server';
+import { noopReporter } from './types/IReporter';
 
 async function main () {
   if (!fs.existsSync('data')) fs.mkdirSync('data');
@@ -15,7 +16,18 @@ async function main () {
   //await emailQuiz.test();
   const server = new EmailQuizServer(emailQuiz);
   server.listen();
-  await emailQuiz.test();
+  emailQuiz.imap.updateOptions({
+    imap: {
+      user: <string>process.env.IMAP_USER,
+      password: <string>process.env.IMAP_PASS,
+      host: <string>process.env.IMAP_HOST,
+      port: <number><unknown>process.env.IMAP_PORT,
+      tls: true,
+      authTimeout: 5000
+    }
+  });
+  console.log(emailQuiz.imap._opt);
+  await emailQuiz.runReplyAll(noopReporter);
 }
 
 main().catch(err => {

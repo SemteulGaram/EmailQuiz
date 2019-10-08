@@ -62,13 +62,14 @@ export class ImapOptions {
   getOptions(): ImapSimpleOptions {
     if (!ImapOptions.additionalOptions[this.optionIndex]) throw 'ERRADDITIONALOPTIONSEXHAUSTED';
 
-    return Object.assign({
-      pool: true,
-      host: this.host,
-      port: this.port,
-      user: this.user,
-      password: this.password
-    }, ImapOptions.additionalOptions[this.optionIndex]);
+    return {
+      imap: Object.assign({
+        host: this.host,
+        port: this.port,
+        user: this.user,
+        password: this.password
+      }, ImapOptions.additionalOptions[this.optionIndex])
+    };
   }
 
   static fromConfig(ctx: EmailQuiz, config: any): ImapOptions {

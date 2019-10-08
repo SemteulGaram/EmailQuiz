@@ -16,8 +16,19 @@ export class EQ_Smtp {
     this.opt = null;
   }
 
+  async isReady () {
+    return !!this.transporter;
+  }
+
+  updateOptions (opt: SMTPPool.Options) {
+    if (this.transporter) {
+      this.logger.smtp(`이미 transport 인스턴스가 있는 상황에서 옵션을 변경했습니다. 서버를 재시작해야 할 수도 있습니다.`);
+    }
+    this.opt = opt;
+  }
+
   async startWithOptions(opt: SMTPPool.Options) {
-    if (this.transporter) {1
+    if (this.transporter) {
       this.transporter.close();
       // transporter may close later
     }
@@ -35,19 +46,6 @@ export class EQ_Smtp {
     if (!this.transporter) throw 'ERRNOTSTARTED';
     this.transporter.close();
     this.transporter = null;
-  }
-
-  static autoConfigs(): any {
-    return [
-      {
-        secure: true,
-      }, {
-        secure: false,
-        tls:{
-          ciphers:'SSLv3'
-        }
-      }
-    ]
   }
 
   async sendMail(to: string, from: string, html: string): Promise<any> {
