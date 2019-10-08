@@ -26,8 +26,14 @@ async function main () {
       authTimeout: 5000
     }
   });
-  const submissions = await emailQuiz.getUnreadSubmissions(noopReporter);
-  console.log(submissions);
+  let submissions = await emailQuiz.getUnreadSubmissions(noopReporter);
+  /*submissions = submissions.map(v => {
+    if (v.body.length > 50) {
+      v.body = v.body.substring(0, 50);
+    }
+    return v;
+  });*/
+  logger.info(submissions);
 }
 
 main().catch(err => {

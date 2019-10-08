@@ -1,4 +1,8 @@
+import fs from 'fs';
+import { inspect } from 'util';
+
 import  { Signale } from 'signale';
+
 
 const options: any = {
   types: {
@@ -42,7 +46,7 @@ const options: any = {
 };
 
 const signale: any = new Signale(options);
-const logger = {
+const logger: any = {
   isDebug: false,
 
   // @ts-ignore
@@ -57,11 +61,28 @@ const logger = {
   }
 }
 
+const stream = fs.createWriteStream('log.txt', { flags: 'a'});
+const mLogger = {
+  _base: (type: string, ...args: any[]) => {
+    const log = '[' + type.toUpperCase() + '] ' + args.map(v => { return (typeof v === 'object' && v !== null) ? inspect(v) : v }).join(' ');
+    console.log(log);
+    stream.write(log + '\n');
+  },
+  debug: (...args: any[]) => { mLogger._base('debug', ...args); },
+  info: (...args: any[]) => { mLogger._base('info', ...args); },
+  warn: (...args: any[]) => { mLogger._base('warn', ...args); },
+  error: (...args: any[]) => { mLogger._base('error', ...args); },
+  smtp: (...args: any[]) => { mLogger._base('smtp', ...args); },
+  imap: (...args: any[]) => { mLogger._base('imap', ...args); }
+}
+
+export default mLogger;
+/*
 export default new Proxy(signale, {
   get: function(obj: any, prop: any): any {
-    // @ts-ignore
     if (logger[prop]) return logger[prop];
 
     return obj[prop];
   }
 })
+*/

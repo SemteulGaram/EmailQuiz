@@ -10,11 +10,13 @@
     "_build": "cross-env NODE_ENV=production npm run buildServer & npm run buildClient",
     "_buildClient": "cross-env NODE_ENV=production webpack --progress --hide-modules",
     "build": "tsc --build tsconfig.json",
-    "start": "cross-env NODE_ENV=production node ./build/index.js"
+    "start": "cross-env NODE_ENV=production node ./build/index.js",
+    "restart": "cross-env npm run build & npm start"
   },
   "dependencies": {
     "dotenv": "^8.1.0",
     "imap-simple": "^4.3.0",
+    "mailparser": "^2.7.1",
     "nodemailer": "^6.3.0",
     "signale": "^1.4.0",
     "socket.io": "^2.3.0",

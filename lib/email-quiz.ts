@@ -8,11 +8,10 @@ import { MultipartAlternative } from './parser/multipartAlternative';
 import { IReporter } from './types/IReporter';
 import { ISimpleParsedEmail } from './types/ISimpleParsedEmail';
 import { decode } from './tool/base64';
-import { brotliDecompress } from 'zlib';
 
 export class EmailQuiz {
   config: Config;
-  logger: Signale
+  logger: any;
   smtp: EQ_Smtp;
   imap: EQ_Imap;
 
@@ -48,6 +47,7 @@ export class EmailQuiz {
     reporter.info(`읽지 않은 총 메일 수: [${ msgs.length }]`);
 
     // Parse target message
+    /*
     const rawSubmissions = msgs.filter((msg: imaps.Message) => {
       return (!!(<string>msg.parts.filter((part: imaps.MessageBodyPart) => {
         return part.which === 'HEADER';
@@ -59,6 +59,8 @@ export class EmailQuiz {
     if (rawSubmissions.length === 0) {
       return [];
     }
+    */
+    const rawSubmissions = msgs;
 
     // Check answer
     const submissions: ISimpleParsedEmail[] = rawSubmissions.map((msg: imaps.Message) => {
@@ -81,15 +83,15 @@ export class EmailQuiz {
       let from: string;
       if (header['from']) {
         if (header['from'].length !== 1) {
-          this.logger.warn('DUMP:', header, body);
           this.logger.warn(`Unexpected: header.from[] length is not 1 [${ header['from'] }]`);
+          this.logger.warn('DUMP:', header, body);
           from = '';
         } else {
           from = header['from'][0];
         }
       } else {
-        this.logger.warn('DUMP:', header, body);
         this.logger.warn('Unexpected: header["from"] empty');
+        this.logger.warn('DUMP:', header, body);
         from = '';
       }
 
@@ -105,8 +107,8 @@ export class EmailQuiz {
       let contentType: string[];
       if (header['content-type']) {
         if (header['content-type'].length !== 1) {
-          this.logger.warn('DUMP:', header, body);
           this.logger.warn(`Unexpected: header.content-type[] length is not 1 [${ header['content-type'].length }]`);
+          this.logger.warn('DUMP:', header, body);
           contentType = ['UNKNOWN'];
         } else {
           contentType = header['content-type'][0].split(';').map((v: string) => v.trim());
@@ -116,8 +118,9 @@ export class EmailQuiz {
       }
       
       // Parse is root body is base64
+      // TODO: encoding
       let isBase64: boolean = header['content-transfer-encoding']
-        && header['content-transfer-encoding'].match(/(?:^|\W)base64(?:$|\W)/i);
+        && !!('' + header['content-transfer-encoding']).match(/(?:^|\W)base64(?:$|\W)/i);
       
       // Create result object
       const result: ISimpleParsedEmail = {
@@ -129,8 +132,8 @@ export class EmailQuiz {
 
       switch (contentType[0].toLowerCase()) {
         default:
-          this.logger.warn('DUMP:', header, body);
           this.logger.warn(`Unexpected: header.content-type[0]: [${ contentType[0] }]`);
+          this.logger.warn('DUMP:', header, body);
           result.contentType = 'UNKNOWN';
           result.body = body;
         break; case 'text/plain':
@@ -140,12 +143,13 @@ export class EmailQuiz {
           result.contentType = 'text/html';
           result.body = body;
         break; case 'multipart/alternative':
+        case 'multipart/mixed':
           const divider = contentType
-            .filter(v => v.match(/(?:^|\W)boundary="(\S*)"/))
+            .filter(v => v.match(/(?:^|\W)boundary=(\S*)/))
             .map(v => {
-              const a = /(?:^|\W)boundary="(\S*)"/.exec(v);
+              const a = /(?:^|\W)boundary=(\S*)/.exec(v);
               if (!a || !a[1]) return false;
-              return a[1];
+              return a[1].replace(/^[\'\"\`]+|[\'\"\`]+$/g, '');
             })[0];
 
           if (divider) {
@@ -159,14 +163,14 @@ export class EmailQuiz {
               isBase64 = filterPart[0].isBase64;
               
             } else {
-              this.logger.warn('DUMP:', header, body, multiAlter.parts);
               this.logger.warn('Unexpected: multipartAlternative.parts[].content-type');
+              this.logger.warn('DUMP:', multiAlter.parts, header, body);
               result.contentType = 'UNKNOWN';
               result.body = body;
             }
           } else {
-            this.logger.warn('DUMP:', header, body);
             this.logger.warn('Unexpected: multipart/alternative with no boundary');
+            this.logger.warn('DUMP:', header, body);
             result.contentType = 'UNKNOWN';
             result.body = body;
           }
@@ -177,8 +181,8 @@ export class EmailQuiz {
         try {
           result.body = decode(result.body).replace(/\r\n/g, '\n');
         } catch (err) {
-          this.logger.error('DUMP:', header, body, err);
           this.logger.error('base64 detected but can\'t parse');
+          this.logger.error('DUMP:', err, header, body);
           result.contentType = 'UNKNOWN';
         }
       }

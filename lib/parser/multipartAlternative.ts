@@ -17,7 +17,6 @@ export class MultipartAlternative {
     divideStr = MultipartAlternative._escapeDivideStr(divideStr);
     const lastDivider = new RegExp('^--' + divideStr + '--$');
     const divider = new RegExp('^--' + divideStr + '$');
-    console.log('ORIGIN LENGTH ', divideStr.length + 2);
 
     let partIndex = 0;
     let lineIndex = 0;
