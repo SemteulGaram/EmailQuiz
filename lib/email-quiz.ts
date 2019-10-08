@@ -8,6 +8,7 @@ import { MultipartAlternative } from './parser/multipartAlternative';
 import { IReporter } from './types/IReporter';
 import { ISimpleParsedEmail } from './types/ISimpleParsedEmail';
 import { decode } from './tool/base64';
+import { brotliDecompress } from 'zlib';
 
 export class EmailQuiz {
   config: Config;
@@ -71,9 +72,10 @@ export class EmailQuiz {
       });
 
       // Parse body
-      let body: any = msg.parts.filter((part: imaps.MessageBodyPart) => {
+      let body: string = msg.parts.filter((part: imaps.MessageBodyPart) => {
         return part.which === 'TEXT';
-      })[0].body.replace('\r\n', '\n');
+      })[0].body;
+      body = body.replace(/\r\n/g, '\n');
 
       // Parse from
       let from: string;
@@ -107,7 +109,7 @@ export class EmailQuiz {
           this.logger.warn(`Unexpected: header.content-type[] length is not 1 [${ header['content-type'].length }]`);
           contentType = ['UNKNOWN'];
         } else {
-          contentType = header['content-type'].split(';').map((v: string) => v.trim());
+          contentType = header['content-type'][0].split(';').map((v: string) => v.trim());
         }
       } else {
         contentType = ['UNDEFINED'];
@@ -173,7 +175,7 @@ export class EmailQuiz {
 
       if (isBase64) {
         try {
-          result.body = decode(result.body);
+          result.body = decode(result.body).replace(/\r\n/g, '\n');
         } catch (err) {
           this.logger.error('DUMP:', header, body, err);
           this.logger.error('base64 detected but can\'t parse');

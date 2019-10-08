@@ -17,6 +17,7 @@ export class MultipartAlternative {
     divideStr = MultipartAlternative._escapeDivideStr(divideStr);
     const lastDivider = new RegExp('^--' + divideStr + '--$');
     const divider = new RegExp('^--' + divideStr + '$');
+    console.log('ORIGIN LENGTH ', divideStr.length + 2);
 
     let partIndex = 0;
     let lineIndex = 0;
@@ -44,7 +45,7 @@ export class MultipartAlternative {
         isBody = true;
       } else if (isBody) {
         if (this.parts[partIndex].body !== '') this.parts[partIndex].body += '\n';
-        this.parts[partIndex].body += body
+        this.parts[partIndex].body += bodySplit[lineIndex];
       } else {
         const dividerIndex = bodySplit[lineIndex].indexOf(':');
         if (dividerIndex === -1) {
@@ -58,7 +59,14 @@ export class MultipartAlternative {
 
           const lowKey = key.toLowerCase();
           if (lowKey === 'content-type') {
-            this.parts[partIndex].contentType = value;
+            // TODO
+            const sepIndex = value.indexOf(';');
+            if (sepIndex !== -1) {
+              this.parts[partIndex].contentType = value.substring(0, sepIndex);
+            } else {
+              this.parts[partIndex].contentType = value;
+            }
+            
           } else if (lowKey === 'content-transfer-encoding'
             && value.match(/(?:^|\W)base64(?:$|\W)/i)) {
             
