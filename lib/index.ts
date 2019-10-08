@@ -26,8 +26,8 @@ async function main () {
       authTimeout: 5000
     }
   });
-  console.log(emailQuiz.imap._opt);
-  await emailQuiz.runReplyAll(noopReporter);
+  const submissions = await emailQuiz.getUnreadSubmissions(noopReporter);
+  console.log(submissions);
 }
 
 main().catch(err => {
