@@ -1,13 +1,12 @@
-import { Signale } from 'signale';
 import imaps from 'imap-simple';
+import mailparser from 'mailparser';
 
 import logger from './logger';
 import { Config } from './config';
 import { EQ_Smtp, EQ_Imap } from './internals';
-import { MultipartAlternative } from './parser/multipartAlternative';
+
 import { IReporter } from './types/IReporter';
 import { ISimpleParsedEmail } from './types/ISimpleParsedEmail';
-import { decode } from './tool/base64';
 
 export class EmailQuiz {
   config: Config;
@@ -27,8 +26,6 @@ export class EmailQuiz {
     this.logger.info('읽지 않은 정답들 불러오는 중');
     reporter.info('읽지 않은 정답들 불러오는 중');
     if (!this.imap.isReady()) throw 'ERRIMAPNOTREADY';
-    // TODO: uncomment
-    // if (!this.smtp.isReady()) throw 'ERRSMTPNOTREADY';
     
     // Get message from IMAP server
     const msgs: Array<imaps.Message>|null = await this.imap.getAllUnseenMail();
@@ -47,7 +44,6 @@ export class EmailQuiz {
     reporter.info(`읽지 않은 총 메일 수: [${ msgs.length }]`);
 
     // Parse target message
-    /*
     const rawSubmissions = msgs.filter((msg: imaps.Message) => {
       return (!!(<string>msg.parts.filter((part: imaps.MessageBodyPart) => {
         return part.which === 'HEADER';
@@ -59,10 +55,9 @@ export class EmailQuiz {
     if (rawSubmissions.length === 0) {
       return [];
     }
-    */
-    const rawSubmissions = msgs;
 
     // Check answer
+    /*
     const submissions: ISimpleParsedEmail[] = rawSubmissions.map((msg: imaps.Message) => {
       // Parse header
       let rawHeader: any = msg.parts.filter((part: imaps.MessageBodyPart) => {
@@ -189,7 +184,34 @@ export class EmailQuiz {
 
       return result;
     });
+    */
+     const parsingProcess: Promise<mailparser.ParsedMail>[] = rawSubmissions.map((msg: imaps.Message) => {
+      // Parse header
+      let all: any = msg.parts.filter((part: imaps.MessageBodyPart) => {
+        return part.which === '';
+      })[0].body;
+      const id = msg.attributes.uid;
+      const idHeader = 'Imap-Id: ' + id + '\r\n';
 
+      return new Promise((resolve, reject) => {
+        mailparser.simpleParser(idHeader + all, (err, mail: mailparser.ParsedMail) => {
+          if (err) return reject(err);
+          resolve(mail);
+        });
+      });
+    });
+    
+    const submissions: ISimpleParsedEmail[] = (await Promise.all(parsingProcess))
+      .map((mail: mailparser.ParsedMail) => {
+
+      return {
+        // TODO
+        from: mail.from.text,
+        subject: mail.subject,
+        body: '' + (mail.html || ''),
+        contentType: 'text/html'
+      }
+    });
     return submissions;
   }
 }

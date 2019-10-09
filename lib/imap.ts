@@ -71,7 +71,7 @@ export class EQ_Imap {
     const connection: ImapSimple = await imaps.connect(this._opt);
     await connection.openBox('INBOX');
     const results: Array<imaps.Message> = await connection.search(['UNSEEN'], {
-      bodies: ['HEADER', 'TEXT'],
+      bodies: ['HEADER', 'TEXT', ''],
       markSeen: false
     });
 
