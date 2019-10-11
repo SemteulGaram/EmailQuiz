@@ -76,6 +76,7 @@ export class Config {
     this._v['imapOptions'] = opt;
   }
 
+
   async save() {
     return await fs.promises.writeFile(this.path, JSON.stringify(this._v), 'utf-8');
   }
@@ -84,12 +85,41 @@ export class Config {
     return await fs.promises.writeFile(this.path, Config.DEFAULT_CONFIG, 'utf-8');
   }
 }
-Config.DEFAULT_CONFIG = `{"serverPort":7102,"replyName":"EmailQuiz","smtpOptions":{},"imapOptions":{}}`;
+Config.DEFAULT_CONFIG = `{"serverPort":7102,"replyName":"EmailQuiz",`
+  + `"successSubject":"축하합니다!","failSucbject":"안타깝네요!","smtpOptions":{},"imapOptions":{}}`;
 
 export interface IConfig {
   serverPort: number,
+  replyName: string,
+  successSubject: string,
+  failSubject: string,
   smtpOptions: any,
   imapOptions: any
 }
 
 export const instance = new Config('./data/config.json');
+
+export class ReplyHtmlConfig {
+  path: string;
+  html: string;
+
+  constructor(path: string) {
+    this.path = path;
+    this.html = '';
+  }
+
+  async init() {
+    try {
+      this.html = await fs.promises.readFile(this.path, 'utf-8');
+    } catch (err) {
+      if (err.code === 'ENOENT') {
+        logger.error(`파일을 찾을 수 없습니다. 관리자에게 문의해주세요 [${ this.path }]`);
+        return process.exit(2);
+      }
+      throw err;
+    }
+  }
+}
+
+export const successReplyHtml = new ReplyHtmlConfig('./data/success.html');
+export const failReplyHtml = new ReplyHtmlConfig('./data/fail.html');

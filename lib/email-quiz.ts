@@ -2,27 +2,45 @@ import imaps from 'imap-simple';
 import mailparser from 'mailparser';
 
 import logger from './logger';
-import { Config } from './config';
+import { Config, ReplyHtmlConfig } from './config';
 import { EQ_Smtp, EQ_Imap } from './internals';
 
 import { IReporter } from './types/IReporter';
 import { ISimpleParsedEmail } from './types/ISimpleParsedEmail';
 
+export interface IEmailQuizOptions {
+  successReplyHtml: ReplyHtmlConfig,
+  failReplyHtml: ReplyHtmlConfig
+}
+
+export interface ISendMailOptions {
+  code: string;
+}
+
 export class EmailQuiz {
   config: Config;
+  options: IEmailQuizOptions;
   logger: any;
   smtp: EQ_Smtp;
   imap: EQ_Imap;
 
-  constructor(config: Config) {
+  constructor(config: Config, options: IEmailQuizOptions) {
     this.config = config;
+    this.options = options;
     this.logger = logger;
     this.smtp = new EQ_Smtp(this);
     this.imap = new EQ_Imap(this);
   }
 
-  async sendSuccessMail(to: string, options: any): Promise<boolean> {
-    this.smtp.sendMail(to, 'subject', `<p>Another Test</p>`);
+  async sendSuccessMail(to: string, options: ISendMailOptions): Promise<boolean> {
+    await this.smtp.sendMail(to, this.config.get('successSubject'),
+      this.options.successReplyHtml.html.replace('{0}', options.code));
+    return true;
+  }
+
+  async sendFailMail(to: string): Promise<boolean> {
+    await this.smtp.sendMail(to, this.config.get('failSubject'),
+      this.options.failReplyHtml.html);
     return true;
   }
 

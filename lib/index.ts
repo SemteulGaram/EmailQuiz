@@ -4,7 +4,7 @@ import { config as dotenv } from 'dotenv';
 dotenv();
 
 import logger from './logger';
-import { instance as config } from './config';
+import { instance as config, successReplyHtml, failReplyHtml } from './config';
 import { EmailQuiz } from './internals';
 import { EmailQuizServer } from './server';
 import { noopReporter } from './types/IReporter';
@@ -12,7 +12,12 @@ import { noopReporter } from './types/IReporter';
 async function main () {
   if (!fs.existsSync('data')) fs.mkdirSync('data');
   await config.init();
-  const emailQuiz = new EmailQuiz(config);
+  await successReplyHtml.init();
+  await failReplyHtml.init();
+  const emailQuiz = new EmailQuiz(config, {
+    successReplyHtml,
+    failReplyHtml
+  });
   //await emailQuiz.test();
   const server = new EmailQuizServer(emailQuiz);
   server.listen();
@@ -44,7 +49,10 @@ async function main () {
     return v;
   });*/
   submissions.forEach(async v => {
-    await emailQuiz.sendSuccessMail(v.from, {});
+    await emailQuiz.sendSuccessMail(v.from, {
+      // TODO: CODE
+      code: 'TODO: CODE'
+    });
   })
   logger.info(submissions);
 }

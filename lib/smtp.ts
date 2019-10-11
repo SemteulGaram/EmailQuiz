@@ -15,7 +15,7 @@ export class EQ_Smtp {
     this.logger = ctx.logger;
     this.transporter = null;
     this.opt = null;
-    this.replyName = 'EmailQuiz';
+    this.replyName = ctx.config.get('replyName') || 'EmailQuiz';
   }
 
   isReady (): boolean {
