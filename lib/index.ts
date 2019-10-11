@@ -26,6 +26,16 @@ async function main () {
       authTimeout: 5000
     }
   });
+  emailQuiz.smtp.updateOptions({
+    pool: true,
+    host: <string>process.env.SMTP_HOST,
+    port: <number>parseInt(''+process.env.SMTP_PORT),
+    auth: {
+      user: <string>process.env.SMTP_USER,
+      pass: <string>process.env.SMTP_PASS
+    }
+  });
+  await emailQuiz.smtp.start();
   let submissions = await emailQuiz.getUnreadSubmissions(noopReporter);
   /*submissions = submissions.map(v => {
     if (v.body.length > 50) {
@@ -33,6 +43,9 @@ async function main () {
     }
     return v;
   });*/
+  submissions.forEach(async v => {
+    await emailQuiz.sendSuccessMail(v.from, {});
+  })
   logger.info(submissions);
 }
 

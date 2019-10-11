@@ -26,8 +26,11 @@ export class Config {
       if (err.code === 'ENOENT') {
         logger.debug('Config not found. Create one...');
         await this._createConfig();
-        logger.info('Config created. Edit "config.json" and restart service');
-        process.exit(0);
+        //logger.info('Config created. Edit "config.json" and restart service');
+        //process.exit(0);
+        this._v = JSON.parse(await fs.promises.readFile(this.path, 'utf-8'));
+        this.ready = true;
+        return this;
       }
       throw err;
     }
@@ -81,7 +84,7 @@ export class Config {
     return await fs.promises.writeFile(this.path, Config.DEFAULT_CONFIG, 'utf-8');
   }
 }
-Config.DEFAULT_CONFIG = `{"serverPort":7102,"smtpOptions":{},"imapOptions":{}}`;
+Config.DEFAULT_CONFIG = `{"serverPort":7102,"replyName":"EmailQuiz","smtpOptions":{},"imapOptions":{}}`;
 
 export interface IConfig {
   serverPort: number,

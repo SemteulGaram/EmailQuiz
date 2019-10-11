@@ -21,12 +21,17 @@ export class EmailQuiz {
     this.imap = new EQ_Imap(this);
   }
 
+  async sendSuccessMail(to: string, options: any): Promise<boolean> {
+    this.smtp.sendMail(to, 'subject', `<p>Another Test</p>`);
+    return true;
+  }
+
   async getUnreadSubmissions(reporter: IReporter): Promise<ISimpleParsedEmail[]> {
     // Initialize
     this.logger.info('읽지 않은 정답들 불러오는 중');
     reporter.info('읽지 않은 정답들 불러오는 중');
     if (!this.imap.isReady()) throw 'ERRIMAPNOTREADY';
-    
+
     // Get message from IMAP server
     const msgs: Array<imaps.Message>|null = await this.imap.getAllUnseenMail();
     if (msgs === null) {
@@ -111,12 +116,12 @@ export class EmailQuiz {
       } else {
         contentType = ['UNDEFINED'];
       }
-      
+
       // Parse is root body is base64
       // TODO: encoding
       let isBase64: boolean = header['content-transfer-encoding']
         && !!('' + header['content-transfer-encoding']).match(/(?:^|\W)base64(?:$|\W)/i);
-      
+
       // Create result object
       const result: ISimpleParsedEmail = {
         subject,
@@ -156,7 +161,7 @@ export class EmailQuiz {
               result.contentType = filterPart[0].contentType;
               result.body = filterPart[0].body;
               isBase64 = filterPart[0].isBase64;
-              
+
             } else {
               this.logger.warn('Unexpected: multipartAlternative.parts[].content-type');
               this.logger.warn('DUMP:', multiAlter.parts, header, body);
@@ -200,7 +205,7 @@ export class EmailQuiz {
         });
       });
     });
-    
+
     const submissions: ISimpleParsedEmail[] = (await Promise.all(parsingProcess))
       .map((mail: mailparser.ParsedMail) => {
 
