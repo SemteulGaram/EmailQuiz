@@ -86,7 +86,7 @@ export class Config {
   }
 }
 Config.DEFAULT_CONFIG = `{"serverPort":7102,"replyName":"EmailQuiz",`
-  + `"successSubject":"축하합니다!","failSucbject":"안타깝네요!","smtpOptions":{},"imapOptions":{}}`;
+  + `"successSubject":"축하합니다!","failSubject":"안타깝네요!","smtpOptions":{},"imapOptions":{}}`;
 
 export interface IConfig {
   serverPort: number,
