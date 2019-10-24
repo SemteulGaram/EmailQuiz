@@ -6,7 +6,7 @@ const logger = {
 }
 
 class EmailQuizSocket extends EventTarget {
-  constructor () {
+  constructor (ctx) {
     super();
 
     this.isConnected = false;
@@ -14,9 +14,14 @@ class EmailQuizSocket extends EventTarget {
     this.socket = new io();
     this.socket.on('connect', () => {
       this.isConnected = true;
-      this.dispatchEvent(new CustomEvent('connectStatusChange', { isConnected: true }));
+      this.dispatchEvent(new CustomEvent('connectStatusChange', {
+        detail: { isConnected: true } }));
     });
     // TODO: disconnect, reconnect
+
+    this.socket.on('update', data => {
+      this.dispatchEvent(new CustomEvent('update', { detail: data }));
+    });
   }
 
   smtpConnect(opt) {
@@ -70,10 +75,17 @@ class EmailQuizSocket extends EventTarget {
 
 class EmailQuiz {
   constructor () {
-    this.eqs = new EmailQuizSocket();
+    logger.debug('EmailQuiz instance initializing...');
+    logger.debug('EmailQuizSocket instance initializing...');
+    this.eqs = null;
+    this._socketHandleInit();
 
+    logger.debug('dom handle initializing...');
     this.elm = {};
-    this.elm.root = document.getElementById('app');
+    this.indicateElm = {};
+    this._domHandleInit();
+
+    logger.debug('loading bar hiding...');
     this.elm.loading = document.getElementById('loading');
     this.elm.loading.addEventListener('animationend', event => {
       if (this.elm.loading.classList.contains('hide')) {
@@ -81,6 +93,42 @@ class EmailQuiz {
       }
     });
     this.elm.loading.classList.add('hide');
+  }
+
+  _socketHandleInit() {
+    this.eqs = new EmailQuizSocket(this);
+    this.eqs.addEventListener('update', this._update.bind(this));
+  }
+
+  _domHandleInit() {
+    this.elm.app = document.getElementById('app');
+    this.elm.indicate = this.elm.app.querySelector('.indicate');
+
+    [
+      'leftCode',
+      'recieveMail',
+      'submitMail',
+      'answerMail',
+      'answerRatio'
+    ].forEach(v => {
+      this.indicateElm[v]
+        = this.elm.indicate.querySelector('.' + camelToDash(v));
+    });
+  }
+
+  // update indicate elements
+  _update(data) {
+    const update = data.detail;
+    if (!update || !update.indicate) {
+      logger.warn('update or update.indicate undefined!');
+      logger.warn(data);
+    } else {
+      Object.keys(update.indicate).forEach(key => {
+        if (!this.indicateElm[key]) {
+          logger.warn(`update.indicate{} has unknown key [${key}]`);
+        } else updateTextNode(this.indicateElm[key], update.indicate[key]);
+      });
+    }
   }
 
   start () {

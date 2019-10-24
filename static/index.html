@@ -12,7 +12,7 @@
       src: url('static/NIXGONFONTS_L_2.0.otf');
     }
 
-    html, body, #app {
+    html, body {
       width: 100%;
       height: 100%;
       overflow: hidden;
@@ -32,19 +32,57 @@
       overflow: auto;
     }
 
-    #app.ondialog > #page {
-      filter: blur(5px);
-    }
-
     .card {
       padding: .5em;
       border-radius: 2px;
       box-shadow: 0 2px 5px rgba(0, 0, 0, 0.5);
     }
 
-    /* HEADER */
-    header {
+    /* https://mladenplavsic.github.io/css-ripple-effect/ */
+    .ripple {
+      position: relative;
+      overflow: hidden;
+      transform: translate3d(0, 0, 0);
+    }
+
+    .ripple:after {
+      content: "";
+      display: block;
       position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none; /* outline, etc */
+      background-image: radial-gradient(circle, #000 10%, transparent 10.01%);
+      background-repeat: no-repeat;
+      background-position: 50%;
+      transform: scale(10, 10);
+      opacity: 0;
+      transition: transform .5s, opacity 1s;
+    }
+
+    .ripple:active:after {
+      transform: scale(0, 0);
+      opacity: .2;
+      transition: 0s;
+    }
+
+    button {
+      border: none;
+      outline: none;
+      background-color: transparent;
+      font-family: inherit;
+      margin: 8px 8px 0 8px;
+      background-color: #00897B;
+      /*transition: background-color .5s;*/
+      color: #FFFFFF;
+    }
+
+    /* header */
+    #header {
+      position: absolute;
+      z-index: 20;
       left: 0;
       top: 0;
       width: 100%;
@@ -57,14 +95,14 @@
       box-shadow: 0 2px 3px rgba(0, 0, 0, 0.5);
     }
 
-    header > .icon {
+    #header > .icon {
       line-height: 100%;
       margin-left: 1rem;
       text-shadow: 0 2px 3px rgba(0, 0, 0, 0.5);
       cursor: pointer;
     }
 
-    /* LOADING */
+    /* initializing loading bar */
 
     #loading {
       position: fixed;
@@ -98,15 +136,133 @@
     #loading .bar {
       color :#FFFFFF;
     }
+
+    /* app root */
+    #app {
+      position: absolute;
+      top: 64px;
+      left: 0px;
+      width: 100%;
+      height: calc(100% - 64px);
+    }
+
+    #app.ondialog > #page {
+      filter: blur(5px);
+    }
+
+    #main {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      max-width: 768px;
+      height: 100%;
+    }
+
+    #main > .control {
+      position: relative;
+      width: 100%;
+      padding: 1rem;
+      box-sizing: border-box;
+      display: flex;
+      flex-direction: row;
+    }
+
+    /* indicate */
+    #main > .indicate {
+      position: relative;
+      width: 100%;
+      padding: 1rem;
+      box-sizing: border-box;
+      display: flex;
+      flex-direction: column;
+    }
+
+    #main > .indicate > .column {
+      margin-bottom: 1rem;
+      display: flex;
+      flex-direction: row;
+    }
+
+    #main > .indicate > .column > .card {
+      height: 100%;
+      margin-right: .5rem;
+      box-sizing: border-box;
+    }
+
+    #main > .indicate > .column > .card > .title {
+      font-size: 1.2rem;
+      font-weight: bold;
+      color: #00695C;
+    }
+
+    #main > .indicate > .column1 {
+      height: 4.7rem;
+    }
+
+    #main > .indicate > .column1 > .card > .content {
+      float: right;
+    }
+
+    #main > .indicate > .column2 {
+      height: 8rem;
+    }
+
+    #main > .indicate > .column3 {
+      height: 4.7rem;
+    }
+
+    /* media query */
+    @media screen and (max-width: 768px) {
+    }
     </style>
-    <script src="http://localhost:7102/static/socket.io.js"></script>
-    <script src="static/index.js"></script>
+    <script src="/static/socket.io.js"></script>
+    <script src="/static/utils.js"></script>
+    <script src="/static/index.js"></script>
   </head>
   <body>
+    <div id="header">
+      <span class="mdi mdi-mailbox-outline icon" v-on:click="gotoHome"></span>
+    </div>
     <div id="app">
-      <header>
-        <span class="mdi mdi-mailbox-outline icon" v-on:click="gotoHome"></span>
-      </header>
+      <div id="nav">
+
+      </div>
+      <div id="main">
+        <div class="control">
+          <button class='btn-add card ripple'>응답 대기 중</button>
+          <button class='btn-setting card ripple'>설정</button>
+        </div>
+        <div class="indicate">
+          <div class="column column1">
+            <div class="card ripple">
+              <span class="title">남은 코드 수</span>
+              <hr />
+              <span class="content left-code">-</span>
+            </div>
+            <div class="card ripple">
+              <span class="title">수신 메일 수</span>
+              <hr />
+              <span class="content recieve-mail">-</span>
+            </div>
+            <div class="card ripple">
+              <span class="title">제출 메일 수</span>
+              <hr />
+              <span class="content submit-mail">-</span>
+            </div>
+            <div class="card ripple">
+              <span class="title">정답 메일 수</span>
+              <hr />
+              <span class="content answer-mail">-</span>
+            </div>
+            <div class="card ripple">
+              <span class="title">정답 비율</span>
+              <hr />
+              <span class="content answer-ratio">-%</span>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
     <div id="loading">
       <span class="bar mdi mdi-loading mdi-spin mdi-48px"></span>

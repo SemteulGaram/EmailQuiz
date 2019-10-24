@@ -61,7 +61,7 @@ const logger: any = {
   }
 }
 
-const stream = fs.createWriteStream('log.txt', { flags: 'a'});
+const stream = fs.createWriteStream('./data/log.txt', { flags: 'a'});
 const mLogger = {
   _base: (type: string, ...args: any[]) => {
     const log = '[' + type.toUpperCase() + '] ' + args.map(v => { return (typeof v === 'object' && v !== null) ? inspect(v) : v }).join(' ');

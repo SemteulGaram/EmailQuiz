@@ -18,9 +18,6 @@ async function main () {
     successReplyHtml,
     failReplyHtml
   });
-  //await emailQuiz.test();
-  const server = new EmailQuizServer(emailQuiz);
-  server.listen();
   emailQuiz.imap.updateOptions({
     imap: {
       user: <string>process.env.IMAP_USER,
@@ -40,7 +37,12 @@ async function main () {
       pass: <string>process.env.SMTP_PASS
     }
   });
+  await emailQuiz.init();
   await emailQuiz.smtp.start();
+
+  const server = new EmailQuizServer(emailQuiz);
+  server.listen();
+
   let submissions = await emailQuiz.getUnreadSubmissions(noopReporter);
   /*submissions = submissions.map(v => {
     if (v.body.length > 50) {
@@ -48,16 +50,20 @@ async function main () {
     }
     return v;
   });*/
+/*
   submissions.forEach(async v => {
     await emailQuiz.sendSuccessMail(v.from, {
       // TODO: CODE
-      code: 'TODO: CODE'
+      code: '17XD-F15A-81A4-SDF1-432AH1'
     });
+    console.log('!');
   })
+*/
   logger.info(submissions);
 }
 
 main().catch(err => {
   logger.error(err);
   logger.error('UNEXPECTED ERROR OCCUR');
+  process.exit(1);
 });

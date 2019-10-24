@@ -4,6 +4,7 @@ import mailparser from 'mailparser';
 import logger from './logger';
 import { Config, ReplyHtmlConfig } from './config';
 import { EQ_Smtp, EQ_Imap } from './internals';
+import DataHandle, { EDataType } from './data-handle';
 
 import { IReporter } from './types/IReporter';
 import { ISimpleParsedEmail } from './types/ISimpleParsedEmail';
@@ -18,33 +19,67 @@ export interface ISendMailOptions {
 }
 
 export class EmailQuiz {
+  ready: boolean;
   config: Config;
   options: IEmailQuizOptions;
   logger: any;
   smtp: EQ_Smtp;
   imap: EQ_Imap;
+  dataCodes: DataHandle;
+  dataStore: DataHandle;
+
 
   constructor(config: Config, options: IEmailQuizOptions) {
+    this.ready = false;
     this.config = config;
     this.options = options;
     this.logger = logger;
     this.smtp = new EQ_Smtp(this);
     this.imap = new EQ_Imap(this);
+    this.dataCodes = new DataHandle('./data/code.txt', {
+      type: EDataType.LINE,
+      ensure: true,
+      defaultValue: []
+    });
+    this.dataStore = new DataHandle('./data/store.json', {
+      type: EDataType.JSON,
+      ensure: true,
+      defaultValue: {
+        usedKey: []
+      }
+    })
+  }
+
+  async init() {
+    await this.dataCodes.load();
+    await this.dataStore.load();
+    this.ready = true;
+  }
+
+  _checkReady() {
+    if (!this.ready) {
+      const err = new Error('EmailQuiz instance not initialized yet!');
+      err.name = 'ERRNOTINIT';
+      throw err;
+    }
   }
 
   async sendSuccessMail(to: string, options: ISendMailOptions): Promise<boolean> {
+    this._checkReady();
     await this.smtp.sendMail(to, this.config.get('successSubject'),
       this.options.successReplyHtml.html.replace('{0}', options.code));
     return true;
   }
 
   async sendFailMail(to: string): Promise<boolean> {
+    this._checkReady();
     await this.smtp.sendMail(to, this.config.get('failSubject'),
       this.options.failReplyHtml.html);
     return true;
   }
 
   async getUnreadSubmissions(reporter: IReporter): Promise<ISimpleParsedEmail[]> {
+    this._checkReady();
     // Initialize
     this.logger.info('읽지 않은 정답들 불러오는 중');
     reporter.info('읽지 않은 정답들 불러오는 중');

@@ -15,7 +15,7 @@ export class EmailQuizServer {
   server: http.Server;
   logger: any;
   io: io.Server;
-  
+
   constructor(ctx: EmailQuiz) {
     this.ctx = ctx;
     this.logger = logger;
@@ -64,7 +64,18 @@ export class EmailQuizServer {
 
       });
 
-      socket.emit('CONNECT');
+      socket.emit('connect');
+
+      // TODO: test update code
+      socket.emit('update', {
+        indicate: {
+          leftCode: 200,
+          recieveMail: 500,
+          submitMail: 400,
+          answerMail: 200,
+          answerRatio: '50%'
+        }
+      });
     });
   }
 
@@ -102,12 +113,12 @@ export class EmailQuizServer {
       case '':
         filePath = path.resolve('static/index.html');
         stat = await fs.promises.stat(filePath);
-  
+
         res.writeHead(200, {
           'Content-Type': 'text/html',
           'Content-Length': stat.size
         });
-  
+
         readStream = fs.createReadStream(filePath);
         readStream.pipe(res);
         return;
@@ -119,12 +130,12 @@ export class EmailQuizServer {
         } catch (err) {
           break;
         }
-              
+
         res.writeHead(200, {
           'Content-Type': EmailQuizServer.mimeType(filePath),
           'Content-Length': stat.size
         });
-  
+
         readStream = fs.createReadStream(filePath);
         readStream.pipe(res);
         return;
@@ -142,7 +153,7 @@ export class EmailQuizServer {
           'Content-Type': EmailQuizServer.mimeType(filePath),
           'Content-Length': stat.size
         });
-  
+
         readStream = fs.createReadStream(filePath);
         readStream.pipe(res);
         return;
